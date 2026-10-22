@@ -2,38 +2,53 @@ name: Validate compatibility package
 on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
+# Branch publication, release tags and manual dispatch can target the same
+# commit. Keep one active validation of that exact revision.
+concurrency:
+  group: validation-${{ github.sha }}
+  cancel-in-progress: true
 jobs:
   checks:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Check scripts and hardware guards
         run: |
           bash -n scripts/install.sh scripts/uninstall.sh
           python3 -m unittest discover -s tests -v
           git diff --check
   ubuntu-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    container: ubuntu:24.04
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: Install kernel headers
+      - name: Install kernel headers from clean Ubuntu repositories
+        timeout-minutes: 4
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential linux-headers-generic
+          apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update
+          apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install --no-install-recommends -y build-essential linux-headers-generic git ca-certificates
+      - uses: actions/checkout@v6
       - name: Build against packaged Ubuntu headers
         run: |
           target=$(find /usr/src -maxdepth 1 -type d -name 'linux-headers-*-generic' | sort -V | tail -n 1)
           test -n "$target"
+          printf 'Kernel headers: %s\n' "$target"
           make KDIR="$target"
   arch-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container: archlinux:base-devel
+    timeout-minutes: 10
     steps:
       - name: Install build dependencies
+        timeout-minutes: 4
         run: pacman -Syu --noconfirm --needed git linux-headers
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Build against packaged Arch headers
         run: |
           target=$(find /usr/lib/modules -mindepth 2 -maxdepth 2 -name build | sort -V | tail -n 1)
           test -n "$target"
+          printf 'Kernel headers: %s\n' "$target"
           make KDIR="$target"
