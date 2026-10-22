@@ -1,0 +1,21 @@
+Local validation: 2026-10-22
+
+Reference hardware: MSI Thin GF63 12VE
+BIOS: E16R8IMS.10E
+EC: 16R8IMS1.108
+Target kernel: 7.2.8-9-omarchy
+
+python3 -m unittest discover -s tests -v: 9 tests passed
+bash -n scripts/install.sh scripts/uninstall.sh: passed
+python3 scripts/check_system.py --require-compatible: matched
+make -j2: passed (CC, MODPOST, LD, BTF completed)
+C/header source comparison with installed omarchy1: identical
+Patch scope against upstream: two battery-hook call renames
+
+No install/uninstall script was executed with elevated privileges for this
+release. No module was loaded/unloaded and no EC value was changed for these
+tests. The compiled .ko is a local build artifact, not a distributed binary.
+
+Legacy-header support is included via header-driven build aliases; only the
+modern-header branch was compiled locally. CI jobs are configured for real
+Arch and Ubuntu header builds, but no CI results are claimed before publishing.

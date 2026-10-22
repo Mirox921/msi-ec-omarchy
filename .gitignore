@@ -26,3 +26,10 @@ compile_commands.json
 packaging/nfpm-alpine-debian-slackware/scripts/postinstall_slackware.sh 
 packaging/nfpm-alpine-debian-slackware/scripts/postinstall.sh 
 packaging/nfpm-alpine-debian-slackware/scripts/preremove.sh
+# Local interpreter/build artifacts and private diagnostics
+__pycache__/
+*.pyc
+*.bin
+*.dump
+*.log
+*.pkg.tar.*

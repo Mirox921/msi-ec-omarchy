@@ -1,0 +1,22 @@
+diff --git i/msi-ec.c w/msi-ec.c
+index ff33729..3d80d5c 100644
+--- i/msi-ec.c
++++ w/msi-ec.c
+@@ -3064,7 +3064,7 @@ static int __init msi_ec_init(void)
+ 	}
+ 
+ 	if (charge_control_supported)
+-		battery_hook_register(&battery_hook);
++		acpi_battery_hook_register(&battery_hook);
+ 
+ 	// register LED classdevs
+ 	if (conf.leds.micmute_led_address != MSI_EC_ADDR_UNSUPP)
+@@ -3096,7 +3096,7 @@ static void __exit msi_ec_exit(void)
+ 			led_classdev_unregister(&msiacpi_led_kbdlight);
+ 
+ 		if (charge_control_supported)
+-			battery_hook_unregister(&battery_hook);
++			acpi_battery_hook_unregister(&battery_hook);
+ 	}
+ 
+ 	platform_device_unregister(msi_platform_device);
